@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amazon ODR Visualization & Calculator</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f0f4f8;
+    margin: 0;
+    padding: 20px;
+  }
+  h1, h2 { text-align: center; }
+  .container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px;
+    justify-content: center;
+    margin-bottom: 40px;
+  }
+  .animation-section, .text-section {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    flex: 1 1 350px;
+    min-width: 300px;
+  }
+  .bar-container {
+    display: flex;
+    align-items: flex-end;
+    height: 150px;
+    flex-wrap: wrap;
+    max-width: 100%;
+    margin-bottom: 20px;
+  }
+  .bar {
+    width: 20px;
+    margin: 1px;
+    background: #4caf50;
+    transition: height 0.5s, background 0.5s;
+  }
+  .bar.defective {
+    background: #f44336;
+  }
+  .info {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  .highlight { color: #f44336; font-weight: bold; }
+  .step { margin: 10px 0; }
+  ul { padding-left: 20px; }
+  .calculator {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    max-width: 600px;
+    margin: 0 auto 40px;
+  }
+  label { display: block; margin: 10px 0 5px; font-weight: bold; }
+  input[type="number"] { width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; }
+  button {
+    padding: 10px 20px;
+    background: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  button:hover { background: #45a049; }
+  .results { margin-top: 15px; font-size: 16px; }
+</style>
+</head>
+<body>
+
+<h1>Amazon ODR Visualization & Calculator</h1>
+
+<div class="container">
+  <!-- Animation Section -->
+  <div class="animation-section">
+    <h2>Orders Animation</h2>
+    <div class="bar-container" id="barContainer"></div>
+  </div>
+
+  <!-- Text Section -->
+  <div class="text-section">
+    <h2>Step-by-Step Explanation & Fix</h2>
+    <div class="info" id="info">
+      <div class="step"><strong>Step 1:</strong> Enter your metrics in the calculator below to calculate your ODR.</div>
+      <div class="step"><strong>Step 2:</strong> Formula: <span class="highlight">ODR = defective orders ÷ total orders × 100%</span></div>
+      <div class="step"><strong>Step 3:</strong> To reduce ODR under your target, calculate how many additional clean orders you need:</div>
+      <pre class="step">ODR ≤ target ⇒ defective orders / (total orders + X) ≤ target</pre>
+      <div class="step"><strong>Step 4 (Immediate Fix):</strong> Resolve any existing defective orders ASAP:</div>
+      <ul class="step">
+        <li>Contact customers with claims to resolve their issues.</li>
+        <li>Ask them to withdraw claims once resolved.</li>
+        <li>Document all communications for Amazon.</li>
+        <li>Ensure future orders are fulfilled correctly and on time.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Calculator Section -->
+<div class="calculator">
+  <h2>ODR Calculator</h2>
+  <form id="odrForm">
+    <label for="totalOrdersInput">Total Orders in Period:</label>
+    <input type="number" id="totalOrdersInput" min="1" required>
+
+    <label for="defectiveOrdersInput">Defective Orders (A-to-z, Negative feedback, Chargebacks):</label>
+    <input type="number" id="defectiveOrdersInput" min="0" required>
+
+    <label for="targetODRInput">Target ODR (%):</label>
+    <input type="number" id="targetODRInput" min="0" max="100" step="0.01" value="1" required>
+
+    <button type="submit">Calculate</button>
+  </form>
+
+  <div class="results" id="results"></div>
+</div>
+
+<script>
+// Animation Section - starts empty
+const container = document.getElementById('barContainer');
+let bars = [];
+
+function animateOrders(totalOrders, defectiveOrders) {
+  container.innerHTML = ''; // clear previous bars
+  bars = [];
+  for (let i = 0; i < totalOrders; i++) {
+    const bar = document.createElement('div');
+    bar.classList.add('bar');
+    if (i < defectiveOrders) bar.classList.add('defective');
+    bar.style.height = '10px';
+    container.appendChild(bar);
+    bars.push(bar);
+  }
+  let step = 0;
+  const interval = setInterval(() => {
+    if (step >= totalOrders) {
+      clearInterval(interval);
+      return;
+    }
+    bars[step].style.height = '100px';
+    step++;
+  }, 10);
+}
+
+// Calculator Section
+document.getElementById('odrForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const total = parseInt(document.getElementById('totalOrdersInput').value);
+  const defective = parseInt(document.getElementById('defectiveOrdersInput').value);
+  const target = parseFloat(document.getElementById('targetODRInput').value) / 100;
+
+  if (defective > total) {
+    alert("Defective orders cannot exceed total orders.");
+    return;
+  }
+
+  const currentODR = (defective / total) * 100;
+  const additionalOrders = Math.ceil((defective / target) - total);
+
+  document.getElementById('results').innerHTML = `
+    <p>Current ODR: <strong>${currentODR.toFixed(2)}%</strong></p>
+    <p>Additional clean orders needed to reach target (${(target*100).toFixed(2)}%): <strong>${additionalOrders}</strong></p>
+    <p>Tip: Resolve existing defective orders immediately to reduce ODR faster!</p>
+  `;
+
+  // Animate bars for user input
+  animateOrders(total, defective);
+});
+</script>
+
+</body>
+</html>
