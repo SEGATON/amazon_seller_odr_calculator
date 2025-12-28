@@ -9,79 +9,71 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <style>
-  :root {
-    --bg-color: #f0f4f8;
-    --text-color: #000;
-    --card-bg: #fff;
-    --bar-clean: #4caf50;
-    --bar-defective: #f44336;
-    --dot-clean: #4caf50;
-    --dot-defective: #f44336;
-    --neon-clean: #00ff00;
-    --neon-defective: #ff0000;
-  }
+:root {
+  --bg-color: #000;
+  --text-color: #fff;
+  --card-bg: #111;
+  --bar-clean: #66ff66;
+  --bar-defective: #ff6666;
+  --dot-clean: #66ff66;
+  --dot-defective: #ff6666;
+  --neon-clean: #00ff00;
+  --neon-defective: #ff0000;
+}
 
-  body { font-family: Arial, sans-serif; background: var(--bg-color); color: var(--text-color); padding: 20px; }
-  h1, h2 { text-align: center; }
+body { font-family: Arial, sans-serif; background: var(--bg-color); color: var(--text-color); padding: 20px; }
+h1, h2 { text-align: center; }
 
-  .top-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-bottom: 40px; }
-  .calculator, .text-section {
-    background: var(--card-bg); padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    flex: 1 1 350px; min-width: 300px;
-  }
+.top-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-bottom: 40px; }
+.calculator, .text-section {
+  background: var(--card-bg); padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  flex: 1 1 350px; min-width: 300px;
+}
 
-  .animation-section {
-    width: 100%; background: var(--card-bg); padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    text-align: center;
-  }
+.animation-section {
+  width: 100%; background: var(--card-bg); padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  text-align: center;
+}
 
-  .bar-container {
-    display: flex;
-    align-items: flex-end;
-    flex-wrap: wrap;
-    max-width: 100%;
-    margin: 0 auto;
-    justify-content: center;
-  }
+.bar-container { display: flex; align-items: flex-end; flex-wrap: wrap; max-width: 100%; margin: 0 auto; justify-content: center; }
+.bar, .dot, .neon-dot { margin: 1px; transition: all 0.3s; }
 
-  .bar, .dot, .neon-dot { margin: 1px; transition: all 0.3s; }
+.bar { width: 20px; }
+.bar.clean { background: var(--bar-clean); }
+.bar.defective { background: var(--bar-defective); }
 
-  .bar { width: 20px; }
-  .bar.clean { background: var(--bar-clean); }
-  .bar.defective { background: var(--bar-defective); }
+.dot { width: 15px; height: 15px; border-radius: 50%; display: inline-block; }
+.dot.clean { background: var(--dot-clean); }
+.dot.defective { background: var(--dot-defective); }
 
-  .dot { width: 15px; height: 15px; border-radius: 50%; display: inline-block; }
-  .dot.clean { background: var(--dot-clean); }
-  .dot.defective { background: var(--dot-defective); }
+.neon-dot { width: 15px; height: 15px; border-radius: 50%; display: inline-block; box-shadow: 0 0 5px #fff,0 0 10px #fff,0 0 15px #0ff,0 0 20px #0ff; }
+.neon-dot.clean { background: var(--neon-clean); box-shadow: 0 0 5px var(--neon-clean),0 0 10px var(--neon-clean),0 0 15px var(--neon-clean),0 0 20px var(--neon-clean); }
+.neon-dot.defective { background: var(--neon-defective); box-shadow: 0 0 5px var(--neon-defective),0 0 10px var(--neon-defective),0 0 15px var(--neon-defective),0 0 20px var(--neon-defective); }
 
-  .neon-dot { width: 15px; height: 15px; border-radius: 50%; display: inline-block; box-shadow: 0 0 5px #fff,0 0 10px #fff,0 0 15px #0ff,0 0 20px #0ff; }
-  .neon-dot.clean { background: var(--neon-clean); box-shadow: 0 0 5px var(--neon-clean),0 0 10px var(--neon-clean),0 0 15px var(--neon-clean),0 0 20px var(--neon-clean); }
-  .neon-dot.defective { background: var(--neon-defective); box-shadow: 0 0 5px var(--neon-defective),0 0 10px var(--neon-defective),0 0 15px var(--neon-defective),0 0 20px var(--neon-defective); }
+.highlight { color: var(--bar-defective); font-weight: bold; }
+.step { margin: 10px 0; }
+ul { padding-left: 20px; }
+.tiny-note { font-size: 0.8em; color: #aaa; margin-top: 2px; }
 
-  .highlight { color: var(--bar-defective); font-weight: bold; }
-  .step { margin: 10px 0; }
-  ul { padding-left: 20px; }
-  .tiny-note { font-size: 0.8em; color: #555; margin-top: 2px; }
+.theme-select { display: flex; align-items: center; gap: 5px; margin-bottom: 10px; }
 
-  .theme-select { display: flex; align-items: center; gap: 5px; margin-bottom: 10px; }
+input.form-control,
+select.form-select,
+textarea.form-control {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid #444;
+  transition: all 0.3s;
+}
 
-  input.form-control,
-  select.form-select,
-  textarea.form-control {
-    background-color: var(--card-bg);
-    color: var(--text-color);
-    border: 1px solid #ccc;
-    transition: all 0.3s;
-  }
+input.form-control:focus,
+select.form-select:focus,
+textarea.form-control:focus {
+  border-color: var(--bar-clean);
+  box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
 
-  input.form-control:focus,
-  select.form-select:focus,
-  textarea.form-control:focus {
-    border-color: var(--bar-clean);
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-  }
-
-  button.btn { transition: all 0.3s; }
+button.btn { transition: all 0.3s; }
 </style>
 </head>
 <body>
@@ -91,7 +83,7 @@
 <div class="top-row">
   <div class="calculator">
     <h2>ODR Calculator</h2>
-    
+
     <div class="theme-select">
       <label for="themeSelect">Theme:</label>
       <select id="themeSelect" class="form-select">
@@ -220,8 +212,13 @@ displaySelect.addEventListener('change', () => { localStorage.setItem('displayTy
 
 // --- Theme switching ---
 const themeSelect = document.getElementById('themeSelect');
-const savedTheme = localStorage.getItem('theme');
-if(savedTheme) setTheme(savedTheme);
+let savedTheme = localStorage.getItem('theme');
+if(!savedTheme){
+  savedTheme = 'dark'; // default dark
+  localStorage.setItem('theme','dark');
+}
+setTheme(savedTheme);
+themeSelect.value = savedTheme;
 
 themeSelect.addEventListener('change', () => {
   setTheme(themeSelect.value);
@@ -242,9 +239,9 @@ function setTheme(theme){
       document.documentElement.style.setProperty('--neon-defective', '#ff0000');
       break;
     case 'dark':
-      document.documentElement.style.setProperty('--bg-color', '#1e1e1e');
+      document.documentElement.style.setProperty('--bg-color', '#000');
       document.documentElement.style.setProperty('--text-color', '#fff');
-      document.documentElement.style.setProperty('--card-bg', '#2c2c2c');
+      document.documentElement.style.setProperty('--card-bg', '#111');
       document.documentElement.style.setProperty('--bar-clean', '#66ff66');
       document.documentElement.style.setProperty('--bar-defective', '#ff6666');
       document.documentElement.style.setProperty('--dot-clean', '#66ff66');
@@ -319,34 +316,63 @@ document.getElementById('odrForm').addEventListener('submit', function(e){
 
 // --- Download History ---
 document.getElementById('downloadHistory').addEventListener('click', () => {
-  const format = document.getElementById('downloadType').value;
   const tbody = document.getElementById('historyTable').querySelector('tbody');
   if(!tbody.children.length){ alert("No history to download!"); return; }
 
   let content = '';
-  if(format === 'txt'){
-    Array.from(tbody.children).forEach(row => {
-      const cols = Array.from(row.children).map(td => td.innerText).join(' | ');
-      content += cols + '\n';
-    });
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'odr_history.txt'; a.click();
-    URL.revokeObjectURL(url);
-  } else if(format === 'csv'){
-    const headers = ['#','Timestamp','Total Orders','Defective','Target ODR','Additional Orders Needed'];
-    content = headers.join(',') + '\n';
-    Array.from(tbody.children).forEach(row => {
-      const cols = Array.from(row.children).map(td => `"${td.innerText}"`).join(',');
-      content += cols + '\n';
-    });
-    const blob = new Blob([content], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'odr_history.csv'; a.click();
-    URL.revokeObjectURL(url);
+  Array.from(tbody.children).forEach(row => {
+    const cols = Array.from(row.children).map(td => td.innerText).join(' | ');
+    content += cols + '\n';
+  });
+  const blob = new Blob([content], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'odr_history.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+// --- Visitor tracking ---
+let visits = parseInt(localStorage.getItem('visitorCount')) || 0;
+visits++;
+localStorage.setItem('visitorCount', visits);
+
+// Hidden admin panel
+const adminPanel = document.createElement('div');
+adminPanel.style.display = 'none';
+adminPanel.style.position = 'fixed';
+adminPanel.style.bottom = '20px';
+adminPanel.style.right = '20px';
+adminPanel.style.background = '#000';
+adminPanel.style.color = '#0f0';
+adminPanel.style.padding = '15px';
+adminPanel.style.borderRadius = '8px';
+adminPanel.style.zIndex = '9999';
+adminPanel.innerHTML = `
+  <p>Visitors: <strong>${visits}</strong></p>
+  <button id="downloadVisitors">Download</button>
+`;
+document.body.appendChild(adminPanel);
+
+// Secret trigger: CTRL + SHIFT + V
+document.addEventListener('keydown', (e) => {
+  if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'v') {
+    adminPanel.style.display =
+      adminPanel.style.display === 'none' ? 'block' : 'none';
   }
+});
+
+// Download visitor count
+document.getElementById('downloadVisitors').addEventListener('click', () => {
+  const content = `Total visits: ${visits}\n`;
+  const blob = new Blob([content], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'visitor_count.txt';
+  a.click();
+  URL.revokeObjectURL(url);
 });
 </script>
 </body>
