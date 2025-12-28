@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Visitor Count</title>
+</head>
+<body>
+<h1>Visitor Count Admin</h1>
+
+<script>
+// Simple password check
+const password = "MySecret123"; // change this
+const entered = prompt("Enter admin password:");
+if (entered !== password) {
+  document.body.innerHTML = "<h2>Access Denied</h2>";
+  throw "Access denied";
+}
+
+// Load visitor count from localStorage (per-browser)
+let visits = parseInt(localStorage.getItem('visitorCount')) || 0;
+document.body.innerHTML += `<p>Total visits: <strong>${visits}</strong></p>`;
+
+// Download button
+const btn = document.createElement('button');
+btn.innerText = "Download Count";
+btn.onclick = () => {
+  const blob = new Blob([`Total visits: ${visits}\n`], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = "visitor_count.txt";
+  a.click();
+  URL.revokeObjectURL(url);
+};
+document.body.appendChild(btn);
+</script>
+</body>
+</html>
