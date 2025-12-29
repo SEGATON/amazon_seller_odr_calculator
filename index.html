@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Amazon ODR Visualization & Calculator</title>
-
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <style>
@@ -35,11 +34,7 @@ body {
     padding: 20px;
 }
 
-h1 {
-    text-align: center;
-}
-
-h2 {
+h1, h2 {
     text-align: center;
 }
 
@@ -51,30 +46,20 @@ h2 {
     margin-bottom: 40px;
 }
 
-.calculator {
+.calculator, .text-section, .animation-section {
     background-color: var(--card-bg);
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    flex: 1 1 350px;
-    min-width: 300px;
 }
 
-.text-section {
-    background-color: var(--card-bg);
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+.calculator, .text-section {
     flex: 1 1 350px;
     min-width: 300px;
 }
 
 .animation-section {
     width: 100%;
-    background-color: var(--card-bg);
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     text-align: center;
 }
 
@@ -87,10 +72,13 @@ h2 {
     justify-content: center;
 }
 
-.bar {
-    width: 20px;
+.bar, .dot, .neon-dot {
     margin: 1px;
     transition: all 0.3s;
+}
+
+.bar {
+    width: 20px;
 }
 
 .bar.clean {
@@ -106,8 +94,6 @@ h2 {
     height: 15px;
     border-radius: 50%;
     display: inline-block;
-    margin: 1px;
-    transition: all 0.3s;
 }
 
 .dot.clean {
@@ -123,22 +109,16 @@ h2 {
     height: 10px;
     border-radius: 50%;
     display: inline-block;
-    margin: 1px;
-    transition: all 0.3s;
 }
 
 .neon-dot.clean {
     background-color: var(--neon-clean);
-    box-shadow: 0 0 5px var(--neon-clean);
-    box-shadow: 0 0 7px var(--neon-clean);
-    box-shadow: 0 0 20px var(--neon-clean);
+    box-shadow: 0 0 5px var(--neon-clean),0 0 7px var(--neon-clean),0 0 20px var(--neon-clean);
 }
 
 .neon-dot.defective {
     background-color: var(--neon-defective);
-    box-shadow: 0 0 5px var(--neon-defective);
-    box-shadow: 0 0 10px var(--neon-defective);
-    box-shadow: 0 0 20px var(--neon-defective);
+    box-shadow: 0 0 5px var(--neon-defective),0 0 10px var(--neon-defective),0 0 20px var(--neon-defective);
 }
 
 .highlight {
@@ -167,38 +147,14 @@ ul {
     margin-bottom: 10px;
 }
 
-input.form-control {
+input.form-control, select.form-select, textarea.form-control {
     background-color: var(--card-bg);
     color: var(--text-color);
     border: 1px solid #444;
     transition: all 0.3s;
 }
 
-input.form-control:focus {
-    border-color: var(--bar-clean);
-    box-shadow: 0 0 5px rgba(0,255,0,0.3);
-}
-
-select.form-select {
-    background-color: var(--card-bg);
-    color: var(--text-color);
-    border: 1px solid #444;
-    transition: all 0.3s;
-}
-
-select.form-select:focus {
-    border-color: var(--bar-clean);
-    box-shadow: 0 0 5px rgba(0,255,0,0.3);
-}
-
-textarea.form-control {
-    background-color: var(--card-bg);
-    color: var(--text-color);
-    border: 1px solid #444;
-    transition: all 0.3s;
-}
-
-textarea.form-control:focus {
+input.form-control:focus, select.form-select:focus, textarea.form-control:focus {
     border-color: var(--bar-clean);
     box-shadow: 0 0 5px rgba(0,255,0,0.3);
 }
@@ -270,8 +226,11 @@ button.btn-success {
 <option value="dots">Dots</option>
 <option value="neon">Glowing Neon Dots</option>
 <option value="stacked">Stacked Blocks</option>
-<option value="sparkline">Mini Sparkline</option>
-<option value="heatmap">Heat Map</option>
+<option value="sparkline">Sparkline Line</option>
+<option value="line">Line Chart</option>
+<option value="candlestick">Candlestick</option>
+<option value="volume">Volume Bars</option>
+<option value="gradient-heatmap">Gradient Heatmap</option>
 </select>
 
 <button type="submit" class="btn btn-success mt-2">Calculate</button>
@@ -324,193 +283,117 @@ button.btn-success {
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-const container = document.getElementById('barContainer');
-const dynamicHeader = document.getElementById('dynamicHeader');
-let bars = [];
-let interval;
+// Theme & display type
+const displaySelect = document.getElementById('displayType');
+const themeSelect = document.getElementById('themeSelect');
+let savedType = localStorage.getItem('displayType');
+if(savedType) displaySelect.value = savedType;
+displaySelect.addEventListener('change', ()=> localStorage.setItem('displayType', displaySelect.value));
 
-// Animate orders
-function animateOrders(total, defective, type) {
-    container.innerHTML = '';
-    bars = [];
-    clearInterval(interval);
-
-    dynamicHeader.innerHTML = `You have <span style="color: var(--bar-defective)">${defective}</span> defective orders out of <span style="color: var(--bar-clean)">${total}</span>`;
-
-    if(['bars','dots','neon'].includes(type)){
-        for(let i=0;i<total;i++){
-            const e = document.createElement('div');
-            if(type==='bars'){
-                e.classList.add('bar', i<defective?'defective':'clean');
-                e.style.height='10px';
-            } else if(type==='dots'){
-                e.classList.add('dot', i<defective?'defective':'clean');
-            } else if(type==='neon'){
-                e.classList.add('neon-dot', i<defective?'defective':'clean');
-            }
-            container.appendChild(e);
-            bars.push(e);
-        }
-        if(type==='bars'){
-            let step = 0;
-            interval = setInterval(()=>{
-                if(step>=total){clearInterval(interval);return;}
-                bars[step].style.height='20px';
-                step++;
-            },10);
-        }
-    } else if(type==='stacked'){
-        for(let i=0;i<total;i++){
-            const e = document.createElement('div');
-            e.style.width='20px';
-            e.style.height=`${10 + (i<defective?10:0)}px`;
-            e.style.backgroundColor=i<defective?'var(--bar-defective)':'var(--bar-clean)';
-            e.style.margin='1px';
-            container.appendChild(e);
-        }
-    } else if(type==='sparkline'){
-        const canvas = document.createElement('canvas');
-        canvas.width = container.offsetWidth;
-        canvas.height = 50;
-        const ctx = canvas.getContext('2d');
-        ctx.strokeStyle='var(--bar-clean)';
-        ctx.beginPath();
-        for(let i=0;i<total;i++){
-            const x=i*(canvas.width/total);
-            const y=50-(i<defective?40:20);
-            if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-        }
-        ctx.stroke();
-        container.appendChild(canvas);
-    } else if(type==='heatmap'){
-        for(let i=0;i<total;i++){
-            const e=document.createElement('div');
-            e.style.width='15px';
-            e.style.height='15px';
-            e.style.margin='1px';
-            const intensity=i<defective?1:0.3;
-            e.style.backgroundColor=`rgba(255,0,0,${intensity})`;
-            container.appendChild(e);
-        }
-    }
-}
-
-// Display type persistence
-const displaySelect=document.getElementById('displayType');
-const savedType=localStorage.getItem('displayType');
-if(savedType) displaySelect.value=savedType;
-displaySelect.addEventListener('change',()=>{
-    localStorage.setItem('displayType', displaySelect.value);
-});
-
-// Theme switching
-const themeSelect=document.getElementById('themeSelect');
-let savedTheme=localStorage.getItem('theme')||'dark';
-themeSelect.value=savedTheme;
+let savedTheme = localStorage.getItem('theme') || 'dark';
+themeSelect.value = savedTheme;
 setTheme(savedTheme);
-themeSelect.addEventListener('change',()=>{
-    setTheme(themeSelect.value);
-    localStorage.setItem('theme', themeSelect.value);
-});
+themeSelect.addEventListener('change', ()=>{ setTheme(themeSelect.value); localStorage.setItem('theme', themeSelect.value); });
 
 function setTheme(theme){
+    const root = document.documentElement.style;
     switch(theme){
         case 'light':
-            document.documentElement.style.setProperty('--bg-color','#f0f4f8');
-            document.documentElement.style.setProperty('--text-color','#000');
-            document.documentElement.style.setProperty('--card-bg','#fff');
-            document.documentElement.style.setProperty('--bar-clean','#4caf50');
-            document.documentElement.style.setProperty('--bar-defective','#f44336');
-            document.documentElement.style.setProperty('--dot-clean','#4caf50');
-            document.documentElement.style.setProperty('--dot-defective','#f44336');
-            document.documentElement.style.setProperty('--neon-clean','#00ff00');
-            document.documentElement.style.setProperty('--neon-defective','#ff0000');
-            document.documentElement.style.setProperty('--btn-primary-bg','#0d6efd');
-            document.documentElement.style.setProperty('--btn-primary-color','#fff');
-            document.documentElement.style.setProperty('--btn-success-bg','#198754');
-            document.documentElement.style.setProperty('--btn-success-color','#fff');
-            document.documentElement.style.setProperty('--offcanvas-bg','#fff');
-            document.documentElement.style.setProperty('--offcanvas-text','#000');
-            document.documentElement.style.setProperty('--offcanvas-table-header','#ccc');
-            document.documentElement.style.setProperty('--offcanvas-table-row','#f9f9f9');
+            root.setProperty('--bg-color','#f0f4f8');
+            root.setProperty('--text-color','#000');
+            root.setProperty('--card-bg','#fff');
+            root.setProperty('--bar-clean','#4caf50');
+            root.setProperty('--bar-defective','#f44336');
+            root.setProperty('--dot-clean','#4caf50');
+            root.setProperty('--dot-defective','#f44336');
+            root.setProperty('--neon-clean','#00ff00');
+            root.setProperty('--neon-defective','#ff0000');
+            root.setProperty('--btn-primary-bg','#0d6efd');
+            root.setProperty('--btn-primary-color','#fff');
+            root.setProperty('--btn-success-bg','#198754');
+            root.setProperty('--btn-success-color','#fff');
+            root.setProperty('--offcanvas-bg','#fff');
+            root.setProperty('--offcanvas-text','#000');
+            root.setProperty('--offcanvas-table-header','#ccc');
+            root.setProperty('--offcanvas-table-row','#f9f9f9');
             break;
         case 'dark':
-            document.documentElement.style.setProperty('--bg-color','#000');
-            document.documentElement.style.setProperty('--text-color','#fff');
-            document.documentElement.style.setProperty('--card-bg','#111');
-            document.documentElement.style.setProperty('--bar-clean','#2CFF05');
-            document.documentElement.style.setProperty('--bar-defective','#F20000');
-            document.documentElement.style.setProperty('--dot-clean','#2CFF05');
-            document.documentElement.style.setProperty('--dot-defective','#ff0000');
-            document.documentElement.style.setProperty('--neon-clean','#2CFF05');
-            document.documentElement.style.setProperty('--neon-defective','#ff0000');
-            document.documentElement.style.setProperty('--btn-primary-bg','#2CFF05');
-            document.documentElement.style.setProperty('--btn-primary-color','#000');
-            document.documentElement.style.setProperty('--btn-success-bg','#2CFF05');
-            document.documentElement.style.setProperty('--btn-success-color','#000');
-            document.documentElement.style.setProperty('--offcanvas-bg','#111');
-            document.documentElement.style.setProperty('--offcanvas-text','#fff');
-            document.documentElement.style.setProperty('--offcanvas-table-header','#333');
-            document.documentElement.style.setProperty('--offcanvas-table-row','#222');
+            root.setProperty('--bg-color','#000');
+            root.setProperty('--text-color','#fff');
+            root.setProperty('--card-bg','#111');
+            root.setProperty('--bar-clean','#2CFF05');
+            root.setProperty('--bar-defective','#F20000');
+            root.setProperty('--dot-clean','#2CFF05');
+            root.setProperty('--dot-defective','#ff0000');
+            root.setProperty('--neon-clean','#2CFF05');
+            root.setProperty('--neon-defective','#ff0000');
+            root.setProperty('--btn-primary-bg','#2CFF05');
+            root.setProperty('--btn-primary-color','#000');
+            root.setProperty('--btn-success-bg','#2CFF05');
+            root.setProperty('--btn-success-color','#000');
+            root.setProperty('--offcanvas-bg','#111');
+            root.setProperty('--offcanvas-text','#fff');
+            root.setProperty('--offcanvas-table-header','#333');
+            root.setProperty('--offcanvas-table-row','#222');
             break;
         case 'cyberpunk':
-            document.documentElement.style.setProperty('--bg-color','#0d0d0d');
-            document.documentElement.style.setProperty('--text-color','#0ff');
-            document.documentElement.style.setProperty('--card-bg','#111');
-            document.documentElement.style.setProperty('--bar-clean','#ff00ff');
-            document.documentElement.style.setProperty('--bar-defective','#00ffff');
-            document.documentElement.style.setProperty('--dot-clean','#ff00ff');
-            document.documentElement.style.setProperty('--dot-defective','#00ffff');
-            document.documentElement.style.setProperty('--neon-clean','#ff00ff');
-            document.documentElement.style.setProperty('--neon-defective','#00ffff');
-            document.documentElement.style.setProperty('--btn-primary-bg','#ff00ff');
-            document.documentElement.style.setProperty('--btn-primary-color','#000');
-            document.documentElement.style.setProperty('--btn-success-bg','#00ffff');
-            document.documentElement.style.setProperty('--btn-success-color','#000');
-            document.documentElement.style.setProperty('--offcanvas-bg','#111');
-            document.documentElement.style.setProperty('--offcanvas-text','#0ff');
-            document.documentElement.style.setProperty('--offcanvas-table-header','#222');
-            document.documentElement.style.setProperty('--offcanvas-table-row','#111');
+            root.setProperty('--bg-color','#0d0d0d');
+            root.setProperty('--text-color','#0ff');
+            root.setProperty('--card-bg','#111');
+            root.setProperty('--bar-clean','#ff00ff');
+            root.setProperty('--bar-defective','#00ffff');
+            root.setProperty('--dot-clean','#ff00ff');
+            root.setProperty('--dot-defective','#00ffff');
+            root.setProperty('--neon-clean','#ff00ff');
+            root.setProperty('--neon-defective','#00ffff');
+            root.setProperty('--btn-primary-bg','#ff00ff');
+            root.setProperty('--btn-primary-color','#000');
+            root.setProperty('--btn-success-bg','#00ffff');
+            root.setProperty('--btn-success-color','#000');
+            root.setProperty('--offcanvas-bg','#111');
+            root.setProperty('--offcanvas-text','#0ff');
+            root.setProperty('--offcanvas-table-header','#222');
+            root.setProperty('--offcanvas-table-row','#111');
             break;
         case 'solaris':
-            document.documentElement.style.setProperty('--bg-color','#fff4e0');
-            document.documentElement.style.setProperty('--text-color','#333');
-            document.documentElement.style.setProperty('--card-bg','#ffe6b3');
-            document.documentElement.style.setProperty('--bar-clean','#ffaa00');
-            document.documentElement.style.setProperty('--bar-defective','#ff3300');
-            document.documentElement.style.setProperty('--dot-clean','#ffaa00');
-            document.documentElement.style.setProperty('--dot-defective','#ff3300');
-            document.documentElement.style.setProperty('--neon-clean','#ffaa00');
-            document.documentElement.style.setProperty('--neon-defective','#ff3300');
-            document.documentElement.style.setProperty('--btn-primary-bg','#ff9900');
-            document.documentElement.style.setProperty('--btn-primary-color','#000');
-            document.documentElement.style.setProperty('--btn-success-bg','#ff6600');
-            document.documentElement.style.setProperty('--btn-success-color','#fff');
-            document.documentElement.style.setProperty('--offcanvas-bg','#ffe6b3');
-            document.documentElement.style.setProperty('--offcanvas-text','#333');
-            document.documentElement.style.setProperty('--offcanvas-table-header','#ffcc99');
-            document.documentElement.style.setProperty('--offcanvas-table-row','#ffddb3');
+            root.setProperty('--bg-color','#fff4e0');
+            root.setProperty('--text-color','#333');
+            root.setProperty('--card-bg','#ffe6b3');
+            root.setProperty('--bar-clean','#ffaa00');
+            root.setProperty('--bar-defective','#ff3300');
+            root.setProperty('--dot-clean','#ffaa00');
+            root.setProperty('--dot-defective','#ff3300');
+            root.setProperty('--neon-clean','#ffaa00');
+            root.setProperty('--neon-defective','#ff3300');
+            root.setProperty('--btn-primary-bg','#ff9900');
+            root.setProperty('--btn-primary-color','#000');
+            root.setProperty('--btn-success-bg','#ff6600');
+            root.setProperty('--btn-success-color','#fff');
+            root.setProperty('--offcanvas-bg','#ffe6b3');
+            root.setProperty('--offcanvas-text','#333');
+            root.setProperty('--offcanvas-table-header','#ffcc99');
+            root.setProperty('--offcanvas-table-row','#ffddb3');
             break;
     }
 }
 
-// Calculator and history
-let calcCount=0;
-const tbody=document.getElementById('historyTable').querySelector('tbody');
+// Calculation logic with history
+const container = document.getElementById('barContainer');
+const dynamicHeader = document.getElementById('dynamicHeader');
+const tbody = document.getElementById('historyTable').querySelector('tbody');
+let calcCount = 0;
+let animationId = null;
 
 document.getElementById('odrForm').addEventListener('submit', e=>{
     e.preventDefault();
-
     const total = parseInt(document.getElementById('totalOrdersInput').value);
     const defective = parseInt(document.getElementById('defectiveOrdersInput').value);
     const target = parseFloat(document.getElementById('targetODRInput').value)/100;
     const type = displaySelect.value;
 
-    if(defective>total){
-        alert("Defective orders cannot exceed total orders.");
-        return;
-    }
+    if(defective>total){ alert("Defective orders cannot exceed total orders."); return; }
 
     const currentODR = (defective/total)*100;
     const additionalOrders = Math.ceil((defective/target)-total);
@@ -536,7 +419,7 @@ document.getElementById('odrForm').addEventListener('submit', e=>{
     tbody.appendChild(row);
 });
 
-// Download history
+// Download history CSV
 document.getElementById('downloadHistory').addEventListener('click', ()=>{
     let csv = 'No,Timestamp,Total Orders,Defective,Target ODR,Additional Orders\n';
     Array.from(tbody.querySelectorAll('tr')).forEach(tr=>{
@@ -551,7 +434,114 @@ document.getElementById('downloadHistory').addEventListener('click', ()=>{
     a.click();
     URL.revokeObjectURL(url);
 });
-</script>
 
+// FULL animation function (bars, dots, neon, stacked, sparkline, line, candlestick, volume, gradient-heatmap)
+function animateOrders(total, defective, type){
+    cancelAnimationFrame(animationId);
+    container.innerHTML = '';
+    dynamicHeader.innerHTML = `You have <span style="color: var(--bar-defective)">${defective}</span> defective orders out of <span style="color: var(--bar-clean)">${total}</span>`;
+    
+    // --- ANIMATION LOGIC ---
+    const elements = [];
+    if(['bars','dots','neon','stacked','volume','gradient-heatmap'].includes(type)){
+        for(let i=0;i<total;i++){
+            const e = document.createElement('div');
+            e.style.transition = 'all 0.3s';
+            if(type==='bars'){
+                e.classList.add('bar', i<defective?'defective':'clean');
+                e.style.height='0px';
+                e.dataset.finalHeight = i<defective?40:20;
+            } else if(type==='dots'){
+                e.classList.add('dot', i<defective?'defective':'clean');
+                e.style.opacity = 0;
+            } else if(type==='neon'){
+                e.classList.add('neon-dot', i<defective?'defective':'clean');
+                e.style.opacity = 0;
+            } else if(type==='stacked'){
+                e.style.width='20px';
+                e.style.height='0px';
+                e.style.backgroundColor=i<defective?'var(--bar-defective)':'var(--bar-clean)';
+                e.style.margin='1px';
+                e.dataset.finalHeight = i<defective?40:20;
+            } else if(type==='volume'){
+                e.style.width='10px';
+                e.style.height='0px';
+                e.style.margin='1px';
+                e.style.backgroundColor = i<defective?'var(--bar-defective)':'var(--bar-clean)';
+                e.dataset.finalHeight = i<defective?40:20;
+            } else if(type==='gradient-heatmap'){
+                e.style.width='15px';
+                e.style.height='15px';
+                e.style.margin='1px';
+                e.dataset.color = `rgba(255,0,0,${i<defective?1:0.3})`;
+                e.style.backgroundColor='rgba(0,0,0,0)';
+            }
+            container.appendChild(e);
+            elements.push(e);
+        }
+        let step = 0;
+        function stepAnimate(){
+            if(step>=elements.length) return;
+            const e = elements[step];
+            if(['bars','stacked','volume'].includes(type)) e.style.height=e.dataset.finalHeight+'px';
+            if(['dots','neon'].includes(type)) e.style.opacity=1;
+            if(type==='gradient-heatmap') e.style.backgroundColor=e.dataset.color;
+            step++;
+            animationId=requestAnimationFrame(stepAnimate);
+        }
+        stepAnimate();
+    }
+
+    // Sparkline/Line chart
+    if(type==='sparkline' || type==='line'){
+        const canvas = document.createElement('canvas');
+        canvas.width = container.offsetWidth;
+        canvas.height = 60;
+        container.appendChild(canvas);
+        const ctx = canvas.getContext('2d');
+        ctx.strokeStyle='var(--bar-clean)';
+        ctx.lineWidth=2;
+        ctx.beginPath();
+        let points=[];
+        for(let i=0;i<total;i++){
+            const x=i*(canvas.width/total);
+            const y=60-(i<defective?40:20);
+            points.push({x,y});
+        }
+        let current=0;
+        function drawLineStep(i){
+            if(i>=points.length) return;
+            if(i===0) ctx.moveTo(points[i].x, points[i].y);
+            else ctx.lineTo(points[i].x, points[i].y);
+            ctx.stroke();
+            animationId=requestAnimationFrame(()=>drawLineStep(i+1));
+        }
+        drawLineStep(0);
+    }
+
+    // Candlestick
+    if(type==='candlestick'){
+        const canvas = document.createElement('canvas');
+        canvas.width = container.offsetWidth;
+        canvas.height = 60;
+        container.appendChild(canvas);
+        const ctx = canvas.getContext('2d');
+        let step=0;
+        function drawCandleStep(){
+            if(step>=total) return;
+            const x=step*(canvas.width/total);
+            const w=(canvas.width/total)*0.6;
+            const isDef = step<defective;
+            const openY = 60-(isDef?10:20);
+            const closeY = 60-(isDef?40:20);
+            ctx.fillStyle = isDef?'var(--bar-defective)':'var(--bar-clean)';
+            ctx.fillRect(x, closeY, w, openY-closeY);
+            step++;
+            animationId=requestAnimationFrame(drawCandleStep);
+        }
+        drawCandleStep();
+    }
+}
+</script>
 </body>
 </html>
